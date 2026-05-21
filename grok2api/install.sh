@@ -42,14 +42,26 @@ uv --version &>/dev/null || err "uv install nahi hua"
 log "uv ready: $(uv --version)"
 
 # ── 3. Clone / update repo ───────────────────────────────────
+REPO_URL="https://github.com/shakapakalo/Grok-API-Manager.git"
 INSTALL_DIR="/opt/grok2api"
 info "Repo clone ho raha hai → $INSTALL_DIR"
 if [ -d "$INSTALL_DIR/.git" ]; then
     warn "Pehle se installed hai — update kar raha hun..."
     cd "$INSTALL_DIR" && git pull origin main
 else
-    git clone https://github.com/shakapakalo/grok-api-manager.git "$INSTALL_DIR"
+    # Sparse checkout — sirf grok2api/ subfolder clone karo
+    mkdir -p "$INSTALL_DIR"
     cd "$INSTALL_DIR"
+    git init -q
+    git remote add origin "$REPO_URL"
+    git config core.sparseCheckout true
+    echo "grok2api/*" > .git/info/sparse-checkout
+    git pull origin main --depth=1 -q
+    # grok2api/ contents ko root mein le aao
+    shopt -s dotglob
+    mv grok2api/* .
+    rmdir grok2api
+    shopt -u dotglob
 fi
 log "Code ready"
 
