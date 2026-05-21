@@ -589,7 +589,8 @@ async def image_edits(
     )
     messages = [{"role": "user", "content": content}]
 
-    # Try native image-edit endpoint first; fall back to chat on 403/404/429.
+    # Try native image-edit endpoint first; on ANY upstream/rate-limit failure
+    # fall back to standard image generation (no asset-upload required).
     try:
         result = await img_edit(
             model=model,
@@ -601,21 +602,17 @@ async def image_edits(
             chat_format=False,
         )
     except (UpstreamError, RateLimitError) as exc:
-        status = getattr(exc, "status", 0) or 0
-        exc_str = str(exc).lower()
-        if status in _EDIT_FALLBACK_STATUSES or "retry" in exc_str or "404" in exc_str or "403" in exc_str:
-            logger.warning(
-                "image edit native endpoint failed (status={}), falling back to image generation",
-                status,
-            )
-            result = await _image_edit_via_generate(
-                prompt=prompt,
-                n=n,
-                size=size,
-                response_format=response_format,
-            )
-        else:
-            raise
+        logger.warning(
+            "image edit native endpoint failed (status={} msg={}), falling back to image generation",
+            getattr(exc, "status", 0) or 0,
+            str(exc)[:120],
+        )
+        result = await _image_edit_via_generate(
+            prompt=prompt,
+            n=n,
+            size=size,
+            response_format=response_format,
+        )
 
     return JSONResponse(result)
 
