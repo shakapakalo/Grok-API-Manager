@@ -523,66 +523,35 @@ async def videos_content(video_id: str):
 # ---------------------------------------------------------------------------
 
 
-# Chat-based image-edit fallback model (vision + image generation)
-_EDIT_CHAT_FALLBACK_MODEL = "grok-4.20-0309"
-# Status codes that trigger fallback to chat completions
+# Status codes on which we fall back from native edit to image generation
 _EDIT_FALLBACK_STATUSES = frozenset({403, 404, 429})
+# Fallback generation model — uses WebSocket, no asset upload required
+_EDIT_GEN_FALLBACK_MODEL = "grok-imagine-image"
 
 
-async def _image_edit_via_chat(
+async def _image_edit_via_generate(
     *,
-    image_inputs: list[str],
     prompt: str,
+    n: int,
+    size: str,
     response_format: str,
 ) -> dict:
-    """Fall back to chat completions for image editing when the native edit
-    endpoint returns 404/403 upstream.  Sends images as vision blocks and
-    asks the model to generate an edited version.
+    """Fallback: when the native image-edit endpoint fails, generate a new
+    image from the prompt using the standard imagine WebSocket pipeline.
+    No asset upload is required, so this works even when Grok's asset upload
+    or media-post endpoints are unavailable.
     """
-    import re
-    import time as _time
+    from .images import generate as img_generate
 
-    content: list[dict] = []
-    for img in image_inputs:
-        content.append({"type": "image_url", "image_url": {"url": img}})
-    content.append({
-        "type": "text",
-        "text": (
-            f"Edit this image as instructed: {prompt}\n\n"
-            "Generate a new image that reflects the requested changes. "
-            "Output only the edited image, no additional text."
-        ),
-    })
-    messages = [{"role": "user", "content": content}]
-
-    result = await chat_completions(
-        model=_EDIT_CHAT_FALLBACK_MODEL,
-        messages=messages,
+    return await img_generate(
+        model=_EDIT_GEN_FALLBACK_MODEL,
+        prompt=prompt,
+        n=n,
+        size=size,
+        response_format=response_format,
         stream=False,
-        emit_think=False,
+        chat_format=False,
     )
-
-    # Extract image URLs from the chat response text
-    text = ""
-    if isinstance(result, dict):
-        choices = result.get("choices", [])
-        if choices:
-            msg = choices[0].get("message", {})
-            text = msg.get("content", "") or ""
-
-    # Find local proxy URLs or any image URLs in the response
-    urls = re.findall(r'https?://[^\s\)\"\']+/v1/files/image\?id=[^\s\)\"\']+', text)
-    if not urls:
-        urls = re.findall(r'https?://[^\s\)\"\']+\.(?:jpg|jpeg|png|webp|gif)', text, re.IGNORECASE)
-    if not urls:
-        # Return raw text as url if nothing found (should not happen)
-        urls = [text.strip()] if text.strip() else []
-
-    if not urls:
-        raise UpstreamError("Image edit via chat returned no image output", status=502)
-
-    data = [{"url": u} if response_format != "b64_json" else {"b64_json": u} for u in urls]
-    return {"created": int(_time.time()), "data": data}
 
 
 @router.post(
@@ -633,14 +602,16 @@ async def image_edits(
         )
     except (UpstreamError, RateLimitError) as exc:
         status = getattr(exc, "status", 0) or 0
-        if status in _EDIT_FALLBACK_STATUSES or "retry" in str(exc).lower() or "404" in str(exc):
+        exc_str = str(exc).lower()
+        if status in _EDIT_FALLBACK_STATUSES or "retry" in exc_str or "404" in exc_str or "403" in exc_str:
             logger.warning(
-                "image edit native endpoint failed (status={}), falling back to chat completions",
+                "image edit native endpoint failed (status={}), falling back to image generation",
                 status,
             )
-            result = await _image_edit_via_chat(
-                image_inputs=image_inputs,
+            result = await _image_edit_via_generate(
                 prompt=prompt,
+                n=n,
+                size=size,
                 response_format=response_format,
             )
         else:
