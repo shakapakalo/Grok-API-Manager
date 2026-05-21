@@ -47,7 +47,17 @@ INSTALL_DIR="/opt/grok2api"
 info "Repo clone ho raha hai → $INSTALL_DIR"
 if [ -d "$INSTALL_DIR/.git" ]; then
     warn "Pehle se installed hai — update kar raha hun..."
-    cd "$INSTALL_DIR" && git pull origin main
+    cd "$INSTALL_DIR"
+    git fetch origin main -q
+    git reset --hard origin/main -q
+    # Sparse checkout pulls files into grok2api/ subfolder — copy to root
+    if [ -d "$INSTALL_DIR/grok2api" ]; then
+        shopt -s dotglob
+        cp -r "$INSTALL_DIR/grok2api/." "$INSTALL_DIR/"
+        rm -rf "$INSTALL_DIR/grok2api"
+        shopt -u dotglob
+        log "Code updated aur root mein copy ho gaya"
+    fi
 else
     # Sparse checkout — sirf grok2api/ subfolder clone karo
     mkdir -p "$INSTALL_DIR"
