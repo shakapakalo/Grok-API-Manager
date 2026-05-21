@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 
 from app.control.account.state_machine import is_manageable
 from app.platform.auth.middleware import verify_api_key
-from app.platform.errors import AppError, ValidationError
+from app.platform.errors import AppError, RateLimitError, UpstreamError, ValidationError
 from app.platform.logging.logger import logger
 from app.platform.storage import image_files_dir, video_files_dir
 from app.control.model import registry as model_registry
@@ -523,6 +523,68 @@ async def videos_content(video_id: str):
 # ---------------------------------------------------------------------------
 
 
+# Chat-based image-edit fallback model (vision + image generation)
+_EDIT_CHAT_FALLBACK_MODEL = "grok-4.20-0309"
+# Status codes that trigger fallback to chat completions
+_EDIT_FALLBACK_STATUSES = frozenset({403, 404, 429})
+
+
+async def _image_edit_via_chat(
+    *,
+    image_inputs: list[str],
+    prompt: str,
+    response_format: str,
+) -> dict:
+    """Fall back to chat completions for image editing when the native edit
+    endpoint returns 404/403 upstream.  Sends images as vision blocks and
+    asks the model to generate an edited version.
+    """
+    import re
+    import time as _time
+
+    content: list[dict] = []
+    for img in image_inputs:
+        content.append({"type": "image_url", "image_url": {"url": img}})
+    content.append({
+        "type": "text",
+        "text": (
+            f"Edit this image as instructed: {prompt}\n\n"
+            "Generate a new image that reflects the requested changes. "
+            "Output only the edited image, no additional text."
+        ),
+    })
+    messages = [{"role": "user", "content": content}]
+
+    result = await chat_completions(
+        model=_EDIT_CHAT_FALLBACK_MODEL,
+        messages=messages,
+        stream=False,
+        emit_think=False,
+    )
+
+    # Extract image URLs from the chat response text
+    text = ""
+    if isinstance(result, dict):
+        choices = result.get("choices", [])
+        if choices:
+            msg = choices[0].get("message", {})
+            text = msg.get("content", "") or ""
+
+    # Find local proxy URLs or any image URLs in the response
+    urls = re.findall(r'https?://[^\s\)\"\']+/v1/files/image\?id=[^\s\)\"\']+', text)
+    if not urls:
+        urls = re.findall(r'https?://[^\s\)\"\']+\.(?:jpg|jpeg|png|webp|gif)', text, re.IGNORECASE)
+    if not urls:
+        # Return raw text as url if nothing found (should not happen)
+        urls = [text.strip()] if text.strip() else []
+
+    if not urls:
+        raise UpstreamError("Image edit via chat returned no image output", status=502)
+
+    data = [{"url": u} if response_format != "b64_json" else {"b64_json": u} for u in urls]
+    return {"created": int(_time.time()), "data": data}
+
+
 @router.post(
     "/images/edits", tags=[_TAG_IMAGES], dependencies=[Depends(verify_api_key)]
 )
@@ -557,15 +619,33 @@ async def image_edits(
         for image_input in image_inputs
     )
     messages = [{"role": "user", "content": content}]
-    result = await img_edit(
-        model=model,
-        messages=messages,
-        n=n,
-        size=size,
-        response_format=response_format,
-        stream=False,
-        chat_format=False,
-    )
+
+    # Try native image-edit endpoint first; fall back to chat on 403/404/429.
+    try:
+        result = await img_edit(
+            model=model,
+            messages=messages,
+            n=n,
+            size=size,
+            response_format=response_format,
+            stream=False,
+            chat_format=False,
+        )
+    except (UpstreamError, RateLimitError) as exc:
+        status = getattr(exc, "status", 0) or 0
+        if status in _EDIT_FALLBACK_STATUSES or "retry" in str(exc).lower() or "404" in str(exc):
+            logger.warning(
+                "image edit native endpoint failed (status={}), falling back to chat completions",
+                status,
+            )
+            result = await _image_edit_via_chat(
+                image_inputs=image_inputs,
+                prompt=prompt,
+                response_format=response_format,
+            )
+        else:
+            raise
+
     return JSONResponse(result)
 
 

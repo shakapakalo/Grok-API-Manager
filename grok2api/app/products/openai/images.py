@@ -665,17 +665,18 @@ async def _prepare_edit_reference(
 async def _prepare_edit_references(
     token: str, image_inputs: list[str]
 ) -> list[_EditReference]:
-    """Upload edit references concurrently and preserve caller order."""
-    results: list[_EditReference | None] = [None] * len(image_inputs)
+    """Upload edit references concurrently and preserve caller order.
 
-    async def _runner(index: int, image_input: str) -> None:
-        results[index] = await _prepare_edit_reference(token, image_input, index)
-
-    async with asyncio.TaskGroup() as tg:
-        for index, image_input in enumerate(image_inputs):
-            tg.create_task(_runner(index, image_input), name=f"image-edit-ref-{index}")
-
-    return [result for result in results if result is not None]
+    Uses asyncio.gather so exceptions propagate directly without ExceptionGroup
+    wrapping (TaskGroup wraps in ExceptionGroup in Python 3.11+ which breaks
+    normal except-clause matching in callers).
+    """
+    tasks = [
+        _prepare_edit_reference(token, image_input, index)
+        for index, image_input in enumerate(image_inputs)
+    ]
+    results = await asyncio.gather(*tasks)
+    return list(results)
 
 
 def _replace_edit_image_placeholders(
