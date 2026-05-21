@@ -8,6 +8,7 @@ Supports:
 import asyncio
 import hashlib
 import html
+import os
 import time
 import uuid
 from dataclasses import dataclass
@@ -585,7 +586,7 @@ def _save_video_bytes(raw: bytes, file_id: str) -> Path:
 
 
 def _local_video_url(file_id: str) -> str:
-    app_url = get_config().get_str("app.app_url", "").rstrip("/")
+    app_url = get_config().get_str("app.app_url", "").rstrip("/") or os.getenv("APP_URL", "").rstrip("/")
     return (
         f"{app_url}/v1/files/video?id={file_id}"
         if app_url

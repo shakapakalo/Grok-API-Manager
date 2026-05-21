@@ -94,7 +94,10 @@ if [ -f "$CONFIG_FILE" ]; then
     sed -i "s|app_url = \".*\"|app_url = \"http://${SERVER_IP}:${PORT}\"|g" "$CONFIG_FILE"
     sed -i 's|image_format = "grok_url"|image_format = "local_url"|g' "$CONFIG_FILE"
     sed -i 's|image_format = ".*"|image_format = "local_url"|g' "$CONFIG_FILE"
-    log "config.toml updated: local_url + app_url"
+    sed -i 's|video_format = "grok_url"|video_format = "local_url"|g' "$CONFIG_FILE"
+    sed -i 's|video_format = ".*"|video_format = "local_url"|g' "$CONFIG_FILE"
+    sed -i 's|imagine_public_image_proxy = false|imagine_public_image_proxy = true|g' "$CONFIG_FILE"
+    log "config.toml updated: local_url (image+video) + app_url"
 else
     # Create minimal config
     cat > "$CONFIG_FILE" << CFGEOF
@@ -112,8 +115,11 @@ thinking = true
 image_format = "local_url"
 imagine_public_image_proxy = true
 video_format = "local_url"
+
+[cache.local]
+enabled = true
 CFGEOF
-    log "config.toml created: local_url mode"
+    log "config.toml created: local_url mode (image+video)"
 fi
 
 # ── 5c. Auto-delete images after 10 minutes (cron) ──────────
