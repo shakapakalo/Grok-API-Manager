@@ -84,6 +84,48 @@ else
     warn ".env pehle se hai — skip"
 fi
 
+# ── 5b. config.toml — local image storage + app_url ─────────
+info "Image local storage configure ho raha hai..."
+mkdir -p "$INSTALL_DIR/data"
+CONFIG_FILE="$INSTALL_DIR/data/config.toml"
+SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
+if [ -f "$CONFIG_FILE" ]; then
+    # Update existing config
+    sed -i "s|app_url = \".*\"|app_url = \"http://${SERVER_IP}:${PORT}\"|g" "$CONFIG_FILE"
+    sed -i 's|image_format = "grok_url"|image_format = "local_url"|g' "$CONFIG_FILE"
+    sed -i 's|image_format = ".*"|image_format = "local_url"|g' "$CONFIG_FILE"
+    log "config.toml updated: local_url + app_url"
+else
+    # Create minimal config
+    cat > "$CONFIG_FILE" << CFGEOF
+[app]
+app_key = "grok2api"
+app_url = "http://${SERVER_IP}:${PORT}"
+api_key = ""
+webui_enabled = true
+webui_key = ""
+
+[features]
+temporary = true
+stream = true
+thinking = true
+image_format = "local_url"
+imagine_public_image_proxy = true
+video_format = "local_url"
+CFGEOF
+    log "config.toml created: local_url mode"
+fi
+
+# ── 5c. Auto-delete images after 10 minutes (cron) ──────────
+info "Auto-delete cron setup ho raha hai (10 min)..."
+IMAGE_DIR="$INSTALL_DIR/data/files/images"
+VIDEO_DIR="$INSTALL_DIR/data/files/videos"
+mkdir -p "$IMAGE_DIR" "$VIDEO_DIR"
+
+CRON_JOB="*/10 * * * * find $IMAGE_DIR -type f -mmin +10 -delete 2>/dev/null; find $VIDEO_DIR -type f -mmin +10 -delete 2>/dev/null"
+( crontab -l 2>/dev/null | grep -v "grok2api.*delete\|$IMAGE_DIR"; echo "$CRON_JOB" ) | crontab -
+log "Auto-delete cron ready: images/videos delete after 10 min"
+
 # ── 6. systemd service ────────────────────────────────────────
 info "systemd service setup ho raha hai..."
 UV_BIN=$(which uv 2>/dev/null || echo "$HOME/.local/bin/uv")
