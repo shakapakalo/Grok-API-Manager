@@ -4,6 +4,7 @@ import asyncio
 import base64
 import binascii
 import hashlib
+import os
 import re
 import time
 from dataclasses import dataclass
@@ -171,7 +172,10 @@ def _normalize_response_format(response_format: str) -> str:
 
 
 def _app_url() -> str:
-    return get_config().get_str("app.app_url", "").rstrip("/")
+    url = get_config().get_str("app.app_url", "").rstrip("/")
+    if not url:
+        url = os.getenv("APP_URL", "").rstrip("/")
+    return url
 
 
 def _local_image_url(file_id: str) -> str:

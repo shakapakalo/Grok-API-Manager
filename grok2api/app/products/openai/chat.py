@@ -261,7 +261,8 @@ async def _resolve_image(token: str, url: str, image_id: str) -> str:
 
     # local_url / local_md: save to disk and return local path
     file_id = await asyncio.to_thread(_save_image, raw, mime, image_id)
-    app_url = cfg.get_str("app.app_url", "").rstrip("/")
+    import os as _os
+    app_url = cfg.get_str("app.app_url", "").rstrip("/") or _os.getenv("APP_URL", "").rstrip("/")
     local_url = (
         f"{app_url}/v1/files/image?id={file_id}"
         if app_url
