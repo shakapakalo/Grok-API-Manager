@@ -12,9 +12,12 @@ warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 err()  { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 info() { echo -e "${BLUE}[→]${NC} $1"; }
 
+PORT=8885
+
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║      Grok2API — VPS Installer        ║${NC}"
+echo -e "${BLUE}║           Port: $PORT               ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
 echo ""
 
@@ -59,24 +62,24 @@ uv sync --python 3.11 -q
 log "Dependencies ready"
 
 # ── 5. .env setup ────────────────────────────────────────────
+SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
 if [ ! -f "$INSTALL_DIR/.env" ]; then
     info ".env configure ho raha hai..."
-    SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
     cat > "$INSTALL_DIR/.env" << ENVEOF
 TZ=Asia/Karachi
 LOG_LEVEL=INFO
 LOG_FILE_ENABLED=true
 ACCOUNT_SYNC_INTERVAL=30
 SERVER_HOST=0.0.0.0
-SERVER_PORT=8000
+SERVER_PORT=$PORT
 SERVER_WORKERS=2
-HOST_PORT=8000
+HOST_PORT=$PORT
 ACCOUNT_STORAGE=local
 DATA_DIR=./data
 LOG_DIR=./logs
-APP_URL=http://${SERVER_IP}:8000
+APP_URL=http://${SERVER_IP}:${PORT}
 ENVEOF
-    log ".env ready (IP: $SERVER_IP)"
+    log ".env ready (IP: $SERVER_IP, Port: $PORT)"
 else
     warn ".env pehle se hai — skip"
 fi
@@ -95,7 +98,7 @@ Wants=network-online.target
 Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
-ExecStart=$UV_BIN run granian --interface asgi --host 0.0.0.0 --port 8000 --workers 2 app.main:app
+ExecStart=$UV_BIN run granian --interface asgi --host 0.0.0.0 --port $PORT --workers 2 app.main:app
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -114,33 +117,33 @@ log "systemd service ready"
 
 # ── 7. Firewall (ufw) ────────────────────────────────────────
 if command -v ufw &>/dev/null; then
-    info "Firewall port 8000 open kar raha hun..."
-    ufw allow 8000/tcp &>/dev/null || true
-    log "Port 8000 open"
+    info "Firewall port $PORT open kar raha hun..."
+    ufw allow $PORT/tcp &>/dev/null || true
+    log "Port $PORT open"
 fi
 
 # ── 8. Health check ──────────────────────────────────────────
 info "Health check (10 second wait)..."
 sleep 10
 SERVER_IP=$(curl -4 -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/v1/models" 2>/dev/null)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/v1/models" 2>/dev/null)
 
 echo ""
-echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║           🎉 Installation Complete!          ║${NC}"
-echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
-echo -e "${GREEN}║${NC}  API Base URL:                               ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  http://${SERVER_IP}:8000                   ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}                                              ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  Admin Dashboard:                            ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  http://${SERVER_IP}:8000/admin/login        ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  Password: grok2api                          ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}                                              ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  Web Chat:                                   ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}  http://${SERVER_IP}:8000/webui/chat         ${GREEN}║${NC}"
-echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
-echo -e "${GREEN}║${NC}  API Health: HTTP $HTTP_CODE                         ${GREEN}║${NC}"
-echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
+echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║           🎉 Installation Complete!              ║${NC}"
+echo -e "${GREEN}╠══════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC}  API Base URL:                                   ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  http://${SERVER_IP}:${PORT}                     ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}                                                  ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  Admin Dashboard:                                ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  http://${SERVER_IP}:${PORT}/admin/login          ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  Password: grok2api                              ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}                                                  ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  Web Chat:                                       ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  http://${SERVER_IP}:${PORT}/webui/chat           ${GREEN}║${NC}"
+echo -e "${GREEN}╠══════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC}  API Health: HTTP $HTTP_CODE                             ${GREEN}║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${YELLOW}Commands:${NC}"
 echo "  Status:   systemctl status grok2api"
