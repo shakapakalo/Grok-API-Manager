@@ -1106,6 +1106,10 @@ async def _run_lite_batch(
     return [result for result in results if result is not None]
 
 
+_EDIT_RETRY_STATUSES: frozenset[int] = frozenset({403, 404, 429})
+_EDIT_MAX_RETRIES = 3
+
+
 async def edit(
     *,
     model:           str,
@@ -1116,7 +1120,10 @@ async def edit(
     stream:          bool = False,
     chat_format:     bool = False,
 ) -> dict | AsyncGenerator[str, None]:
-    """Edit images via media/post/create + imagine-image-edit chat payload."""
+    """Edit images via media/post/create + imagine-image-edit chat payload.
+
+    Auto-retries with a different account on 403/404/429 upstream errors.
+    """
     cfg = get_config()
     spec = resolve_model(model)
     timeout_s = cfg.get_float("chat.timeout", 120.0)
@@ -1130,169 +1137,212 @@ async def edit(
     if _acct_dir is None:
         raise RateLimitError("Account directory not initialised")
 
-    acct = await _acct_dir.reserve(
-        pool_candidates = spec.pool_candidates(),
-        mode_id         = int(spec.mode_id),
-        now_s_override  = now_s(),
-    )
-    if acct is None:
-        raise RateLimitError("No available accounts for image edit")
+    excluded: list[str] = []
 
-    token       = acct.token
-    response_id = make_response_id()
-    edit_prompt = prompt
-
-    try:
-        edit_references = await _prepare_edit_references(token, image_inputs)
-        if not edit_references:
-            raise UpstreamError("All image uploads failed; cannot proceed with image edit")
-        edit_prompt = _replace_edit_image_placeholders(prompt, edit_references)
-        image_references = [ref.content_url for ref in edit_references]
-
-        post = await create_media_post(
-            token,
-            media_type=IMAGE_POST_MEDIA_TYPE,
-            prompt=edit_prompt,
+    for _attempt in range(_EDIT_MAX_RETRIES):
+        acct = await _acct_dir.reserve(
+            pool_candidates = spec.pool_candidates(),
+            mode_id         = int(spec.mode_id),
+            now_s_override  = now_s(),
+            exclude_tokens  = excluded or None,
         )
-        post_data = post.get("post")
-        if not isinstance(post_data, dict):
-            raise UpstreamError("Image edit create-post returned no post payload")
-        parent_post_id = str(post_data.get("id") or "").strip()
-        if not parent_post_id:
-            raise UpstreamError("Image edit create-post returned no post id")
-        post_prompt = post_data.get("originalPrompt") or post_data.get("prompt")
-        if isinstance(post_prompt, str) and post_prompt.strip():
-            edit_prompt = post_prompt.strip()
-    except Exception:
-        await _acct_dir.release(acct)
-        raise
+        if acct is None:
+            break
 
-    if stream:
-        async def _sse_stream() -> AsyncGenerator[str, None]:
-            success = False
-            fail_exc: BaseException | None = None
-            progress_map: dict[int, int] = {}
-            last_progress = -1
-            queue: asyncio.Queue[tuple[int, int]] = asyncio.Queue()
-            try:
-                async def _progress(index: int, progress: int) -> None:
-                    progress_map[index] = _clamp_progress(progress)
-                    await queue.put((
-                        _compute_progress_percent(progress_map, n),
-                        _completed_items(progress_map),
-                    ))
+        token       = acct.token
+        response_id = make_response_id()
+        edit_prompt = prompt
 
-                task = asyncio.create_task(
-                    _collect_edit_images(
-                        token=token,
-                        prompt=edit_prompt,
-                        image_references=image_references,
-                        parent_post_id=parent_post_id,
-                        requested_n=n,
-                        response_format=response_format,
-                        timeout_s=timeout_s,
-                        progress_cb=_progress,
-                    )
+        # ── Setup: upload references + create media post ──────────
+        try:
+            edit_references = await _prepare_edit_references(token, image_inputs)
+            if not edit_references:
+                raise UpstreamError("All image uploads failed; cannot proceed with image edit")
+            edit_prompt = _replace_edit_image_placeholders(prompt, edit_references)
+            image_references = [ref.content_url for ref in edit_references]
+
+            post = await create_media_post(
+                token,
+                media_type=IMAGE_POST_MEDIA_TYPE,
+                prompt=edit_prompt,
+            )
+            post_data = post.get("post")
+            if not isinstance(post_data, dict):
+                raise UpstreamError("Image edit create-post returned no post payload")
+            parent_post_id = str(post_data.get("id") or "").strip()
+            if not parent_post_id:
+                raise UpstreamError("Image edit create-post returned no post id")
+            post_prompt = post_data.get("originalPrompt") or post_data.get("prompt")
+            if isinstance(post_prompt, str) and post_prompt.strip():
+                edit_prompt = post_prompt.strip()
+        except UpstreamError as exc:
+            await _acct_dir.release(acct)
+            kind = _feedback_kind(exc)
+            await _acct_dir.feedback(token, kind, int(spec.mode_id))
+            asyncio.create_task(
+                _fail_sync(token, int(spec.mode_id), exc)
+            ).add_done_callback(_log_task_exception)
+            if exc.status in _EDIT_RETRY_STATUSES:
+                logger.warning(
+                    "image edit setup failed, retrying with next account: status={} attempt={}/{}",
+                    exc.status, _attempt + 1, _EDIT_MAX_RETRIES,
                 )
-                while not task.done() or not queue.empty():
-                    try:
-                        aggregate, completed = await asyncio.wait_for(queue.get(), timeout=0.1)
-                    except asyncio.TimeoutError:
-                        continue
-                    if chat_format and aggregate > last_progress:
-                        last_progress = aggregate
-                        chunk = make_thinking_chunk(
-                            response_id,
-                            model,
-                            _progress_reason_delta(
-                                "图片",
-                                aggregate,
-                                completed=completed,
-                                total=n,
-                            ),
+                excluded.append(token)
+                continue
+            raise
+        except Exception:
+            await _acct_dir.release(acct)
+            raise
+
+        # ── Streaming path (no mid-stream retry) ─────────────────
+        if stream:
+            async def _sse_stream() -> AsyncGenerator[str, None]:
+                success = False
+                fail_exc: BaseException | None = None
+                progress_map: dict[int, int] = {}
+                last_progress = -1
+                queue: asyncio.Queue[tuple[int, int]] = asyncio.Queue()
+                try:
+                    async def _progress(index: int, progress: int) -> None:
+                        progress_map[index] = _clamp_progress(progress)
+                        await queue.put((
+                            _compute_progress_percent(progress_map, n),
+                            _completed_items(progress_map),
+                        ))
+
+                    task = asyncio.create_task(
+                        _collect_edit_images(
+                            token=token,
+                            prompt=edit_prompt,
+                            image_references=image_references,
+                            parent_post_id=parent_post_id,
+                            requested_n=n,
+                            response_format=response_format,
+                            timeout_s=timeout_s,
+                            progress_cb=_progress,
                         )
+                    )
+                    while not task.done() or not queue.empty():
+                        try:
+                            aggregate, completed = await asyncio.wait_for(queue.get(), timeout=0.1)
+                        except asyncio.TimeoutError:
+                            continue
+                        if chat_format and aggregate > last_progress:
+                            last_progress = aggregate
+                            chunk = make_thinking_chunk(
+                                response_id,
+                                model,
+                                _progress_reason_delta(
+                                    "图片",
+                                    aggregate,
+                                    completed=completed,
+                                    total=n,
+                                ),
+                            )
+                            yield f"data: {orjson.dumps(chunk).decode()}\n\n"
+                    images = await task
+                    for image in images:
+                        content = _output_content(image, chat_format=chat_format)
+                        chunk   = make_stream_chunk(response_id, model, content)
                         yield f"data: {orjson.dumps(chunk).decode()}\n\n"
-                images = await task
-                for image in images:
-                    content = _output_content(image, chat_format=chat_format)
-                    chunk   = make_stream_chunk(response_id, model, content)
-                    yield f"data: {orjson.dumps(chunk).decode()}\n\n"
 
-                final = make_stream_chunk(response_id, model, "", is_final=True)
-                yield f"data: {orjson.dumps(final).decode()}\n\n"
-                yield "data: [DONE]\n\n"
-                success = True
-            except BaseException as exc:
-                fail_exc = exc
-                raise
-            finally:
-                await _acct_dir.release(acct)
-                kind = FeedbackKind.SUCCESS if success else _feedback_kind(fail_exc) if fail_exc else FeedbackKind.SERVER_ERROR
-                await _acct_dir.feedback(token, kind, int(spec.mode_id))
-                if success:
-                    asyncio.create_task(_quota_sync(token, int(spec.mode_id)))
-                else:
-                    asyncio.create_task(_fail_sync(token, int(spec.mode_id), fail_exc))
+                    final = make_stream_chunk(response_id, model, "", is_final=True)
+                    yield f"data: {orjson.dumps(final).decode()}\n\n"
+                    yield "data: [DONE]\n\n"
+                    success = True
+                except BaseException as exc:
+                    fail_exc = exc
+                    raise
+                finally:
+                    await _acct_dir.release(acct)
+                    kind = FeedbackKind.SUCCESS if success else _feedback_kind(fail_exc) if fail_exc else FeedbackKind.SERVER_ERROR
+                    await _acct_dir.feedback(token, kind, int(spec.mode_id))
+                    if success:
+                        asyncio.create_task(_quota_sync(token, int(spec.mode_id)))
+                    else:
+                        asyncio.create_task(_fail_sync(token, int(spec.mode_id), fail_exc))
 
-        return _sse_stream()
+            return _sse_stream()
 
-    success = False
-    fail_exc: BaseException | None = None
-    reasoning_updates: list[str] = []
-    progress_map: dict[int, int] = {}
-    try:
-        async def _progress(index: int, progress: int) -> None:
-            progress_map[index] = _clamp_progress(progress)
-            if chat_format:
-                _append_reason_update(
-                    reasoning_updates,
-                    "图片",
-                    _compute_progress_percent(progress_map, n),
-                    completed=_completed_items(progress_map),
-                    total=n,
+        # ── Non-streaming path (with retry on account error) ─────
+        success = False
+        fail_exc: BaseException | None = None
+        retry = False
+        reasoning_updates: list[str] = []
+        progress_map: dict[int, int] = {}
+        try:
+            async def _progress(index: int, progress: int) -> None:
+                progress_map[index] = _clamp_progress(progress)
+                if chat_format:
+                    _append_reason_update(
+                        reasoning_updates,
+                        "图片",
+                        _compute_progress_percent(progress_map, n),
+                        completed=_completed_items(progress_map),
+                        total=n,
+                    )
+
+            images = await _collect_edit_images(
+                token=token,
+                prompt=edit_prompt,
+                image_references=image_references,
+                parent_post_id=parent_post_id,
+                requested_n=n,
+                response_format=response_format,
+                timeout_s=timeout_s,
+                progress_cb=_progress,
+            )
+            success = True
+        except UpstreamError as exc:
+            fail_exc = exc
+            if exc.status in _EDIT_RETRY_STATUSES:
+                logger.warning(
+                    "image edit execution failed, retrying with next account: status={} attempt={}/{}",
+                    exc.status, _attempt + 1, _EDIT_MAX_RETRIES,
                 )
+                retry = True
+        except BaseException as exc:
+            fail_exc = exc
+        finally:
+            await _acct_dir.release(acct)
+            kind = FeedbackKind.SUCCESS if success else _feedback_kind(fail_exc) if fail_exc else FeedbackKind.SERVER_ERROR
+            await _acct_dir.feedback(token, kind, int(spec.mode_id))
+            if success:
+                asyncio.create_task(
+                    _quota_sync(token, int(spec.mode_id))
+                ).add_done_callback(_log_task_exception)
+            else:
+                asyncio.create_task(
+                    _fail_sync(token, int(spec.mode_id), fail_exc)
+                ).add_done_callback(_log_task_exception)
 
-        images = await _collect_edit_images(
-            token=token,
-            prompt=edit_prompt,
-            image_references=image_references,
-            parent_post_id=parent_post_id,
-            requested_n=n,
-            response_format=response_format,
-            timeout_s=timeout_s,
-            progress_cb=_progress,
-        )
-        success = True
-    except BaseException as exc:
-        fail_exc = exc
-        raise
-    finally:
-        await _acct_dir.release(acct)
-        kind = FeedbackKind.SUCCESS if success else _feedback_kind(fail_exc) if fail_exc else FeedbackKind.SERVER_ERROR
-        await _acct_dir.feedback(token, kind, int(spec.mode_id))
-        if success:
-            asyncio.create_task(_quota_sync(token, int(spec.mode_id)))
-        else:
-            asyncio.create_task(_fail_sync(token, int(spec.mode_id), fail_exc))
+        if retry:
+            excluded.append(token)
+            continue
 
-    if chat_format:
-        content = "\n\n".join(image.markdown_value for image in images)
-        reasoning = "\n".join(reasoning_updates) if reasoning_updates else None
-        return make_chat_response(
-            model,
-            content,
-            prompt_content=prompt,
-            response_id=response_id,
-            reasoning_content=reasoning,
-        )
+        if fail_exc is not None:
+            raise fail_exc  # type: ignore[misc]
 
-    data_list = [
-        {"b64_json": image.api_value}
-        if _normalize_response_format(response_format) == "b64_json"
-        else {"url": image.api_value}
-        for image in images
-    ]
-    return {"created": int(time.time()), "data": data_list}
+        if chat_format:
+            content = "\n\n".join(image.markdown_value for image in images)
+            reasoning = "\n".join(reasoning_updates) if reasoning_updates else None
+            return make_chat_response(
+                model,
+                content,
+                prompt_content=prompt,
+                response_id=response_id,
+                reasoning_content=reasoning,
+            )
+
+        data_list = [
+            {"b64_json": image.api_value}
+            if _normalize_response_format(response_format) == "b64_json"
+            else {"url": image.api_value}
+            for image in images
+        ]
+        return {"created": int(time.time()), "data": data_list}
+
+    raise RateLimitError("No available accounts for image edit after retries")
 
 
 __all__ = ["generate", "edit", "resolve_aspect_ratio"]
