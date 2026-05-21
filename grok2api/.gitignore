@@ -1,55 +1,16 @@
 # Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
 .venv/
-venv/
-ENV/
-env/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Environment Variables
+# Env & secrets
 .env
 
-# Logs
-logs/
-*.log
-
-# Data
+# Data & logs (VPS pe khud generate honge)
 data/
-app/data/
+logs/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Project specific
-.ace-tool/
+# Lock files (optional - uncomment if needed)
+# uv.lock
