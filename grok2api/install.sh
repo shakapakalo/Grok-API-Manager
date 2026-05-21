@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 #  Grok2API — Contabo VPS 1-Click Installer
-#  Repo: https://github.com/shakapakalo/grok2api
+#  Repo: https://github.com/shakapakalo/grok-api-manager
 #  Tested on: Ubuntu 22.04 / Debian 12
 # ============================================================
 set -e
@@ -48,7 +48,7 @@ if [ -d "$INSTALL_DIR/.git" ]; then
     warn "Pehle se installed hai — update kar raha hun..."
     cd "$INSTALL_DIR" && git pull origin main
 else
-    git clone https://github.com/shakapakalo/grok2api.git "$INSTALL_DIR"
+    git clone https://github.com/shakapakalo/grok-api-manager.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
 fi
 log "Code ready"
