@@ -825,6 +825,27 @@ async def completions(
                 if full_text:
                     full_text += "\n\n"
                 full_text += img_text
+    elif files and full_text.strip():
+        # Model did not generate an image but user sent image input(s).
+        # Auto-generate an image using the response text as the prompt so
+        # callers always receive an image URL when they supply a reference image.
+        try:
+            from .images import generate as _img_generate
+            _gen = await _img_generate(
+                model="grok-imagine-image",
+                prompt=full_text.strip()[:2000],
+                n=1,
+                size="1024x1024",
+                response_format="url",
+                stream=False,
+                chat_format=False,
+            )
+            _gen_url = ((_gen.get("data") or [{}])[0]).get("url", "")
+            if _gen_url:
+                full_text += "\n\n" + _gen_url
+                logger.info("chat auto-generated image appended: url={}", _gen_url[:80])
+        except Exception as _ge:
+            logger.warning("chat auto image generation failed: {}", str(_ge)[:120])
 
     references = adapter.references_suffix()
     if references:
