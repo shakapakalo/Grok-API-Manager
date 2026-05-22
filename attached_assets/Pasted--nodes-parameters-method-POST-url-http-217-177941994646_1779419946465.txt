@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.77.8.115:8885/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ranaji"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"grok-4.20-0309\",\n  \"stream\": false,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"image_url\",\n          \"image_url\": {\n            \"url\": \"{{ $json['photo link'] }}\"\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"Analyze the provided image and extract ALL visible text exactly as written (preserve wording, capitalization, and punctuation).  Then recreate a viral cinematic social media poster using the SAME text.  Layout:  * Top Section: Use the original image or recreate it in a cinematic, slightly painterly style    * Apply warm golden lighting, soft glow, slight blur, depth of field, and subtle vignette * Divider: Add a thin white horizontal line across the image * Bottom Section: Solid deep black background  Strict Rule:  * Remove ALL logos, branding, watermarks, badges, or labels * Do NOT include: “Flag First Media”, “EST. 2023” or any branding  Typography:  * Bold, ALL CAPS, condensed font (Impact / Bebas Neue style) * Center aligned with strong hierarchy  Text Colors:  * First 1–2 lines → RED * Middle line → WHITE * Final line → BLUE  Enhancements:  * Improve line breaks for readability WITHOUT changing wording * Make final word the biggest element  Output Style:  * High contrast, cinematic, emotional, viral * Clean professional design with NO branding\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1856,
+        496
+      ],
+      "id": "c8f78e3b-ac6e-45e5-bff7-872942e8ad4f",
+      "name": "HTTP Request18",
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {},
+  "pinData": {},
+  "meta": {
+    "instanceId": "7af414a8ed58ecbaa38e8c9a6c2b9b049b571fb629dcf85415d88fa24c7f5cdd"
+  }
+}
