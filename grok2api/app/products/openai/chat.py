@@ -827,13 +827,29 @@ async def completions(
                 full_text += img_text
     elif files and full_text.strip():
         # Model did not generate an image but user sent image input(s).
-        # Auto-generate an image using the response text as the prompt so
-        # callers always receive an image URL when they supply a reference image.
+        # Use the last user message text as the generation prompt — NOT the
+        # model's verbose response text (which causes the generator to render
+        # the description literally as text-on-image).
         try:
             from .images import generate as _img_generate
+            _img_prompt = ""
+            for _msg in reversed(messages):
+                if _msg.get("role") == "user":
+                    _content = _msg.get("content", "")
+                    if isinstance(_content, str):
+                        _img_prompt = _content.strip()
+                    elif isinstance(_content, list):
+                        for _blk in _content:
+                            if isinstance(_blk, dict) and _blk.get("type") == "text":
+                                _img_prompt = (_blk.get("text") or "").strip()
+                                break
+                    if _img_prompt:
+                        break
+            if not _img_prompt:
+                _img_prompt = full_text.strip()[:500]
             _gen = await _img_generate(
                 model="grok-imagine-image",
-                prompt=full_text.strip()[:2000],
+                prompt=_img_prompt[:2000],
                 n=1,
                 size="1024x1024",
                 response_format="url",
