@@ -523,89 +523,6 @@ async def videos_content(video_id: str):
 # ---------------------------------------------------------------------------
 
 
-# Fallback chat model — supports vision input + image generation
-_EDIT_CHAT_FALLBACK_MODEL = "grok-4.20-0309"
-# Last-resort generation model — no asset upload, ignores reference image
-_EDIT_GEN_FALLBACK_MODEL = "grok-imagine-image"
-
-
-async def _image_edit_via_chat(
-    *,
-    image_inputs: list[str],
-    prompt: str,
-    response_format: str,
-) -> dict:
-    """Fallback #1: send the reference image(s) via chat vision + ask for
-    an edited output.  Works when asset-upload succeeds but create_media_post
-    returns 404.  Extracts the generated local image URL from the response.
-    """
-    import re
-    import time as _time
-
-    content: list[dict] = []
-    for img in image_inputs:
-        content.append({"type": "image_url", "image_url": {"url": img}})
-    content.append({
-        "type": "text",
-        "text": (
-            f"{prompt}\n\n"
-            "Generate the edited image based on the instruction above. "
-            "Output only the final image."
-        ),
-    })
-    messages = [{"role": "user", "content": content}]
-
-    result = await chat_completions(
-        model=_EDIT_CHAT_FALLBACK_MODEL,
-        messages=messages,
-        stream=False,
-        emit_think=False,
-    )
-
-    # Extract the local image URL embedded in the text by _resolve_image()
-    text = ""
-    if isinstance(result, dict):
-        choices = result.get("choices", [])
-        if choices:
-            text = (choices[0].get("message") or {}).get("content") or ""
-
-    # Match local proxy URLs: /v1/files/image?id=...
-    urls = re.findall(r'https?://[^\s\)\"\'>]+/v1/files/image\?id=[^\s\)\"\'>]+', text)
-    if not urls:
-        # Any image URL as last resort
-        urls = re.findall(r'https?://[^\s\)\"\'>]+\.(?:jpg|jpeg|png|webp)', text, re.I)
-
-    if not urls:
-        raise UpstreamError("Chat-based image edit returned no image", status=502)
-
-    data = [
-        {"b64_json": u} if response_format == "b64_json" else {"url": u}
-        for u in urls
-    ]
-    return {"created": int(_time.time()), "data": data}
-
-
-async def _image_edit_via_generate(
-    *,
-    prompt: str,
-    n: int,
-    size: str,
-    response_format: str,
-) -> dict:
-    """Fallback #2 (last resort): plain image generation ignoring the
-    reference image.  No asset upload required.
-    """
-    from .images import generate as img_generate
-
-    return await img_generate(
-        model=_EDIT_GEN_FALLBACK_MODEL,
-        prompt=prompt,
-        n=n,
-        size=size,
-        response_format=response_format,
-        stream=False,
-        chat_format=False,
-    )
 
 
 @router.post(
@@ -635,7 +552,6 @@ async def image_edits(
         await _upload_to_data_uri(item, param=f"image.{index}")
         for index, item in enumerate(image)
     ]
-    # Wrap input into a single-message conversation.
     content = [{"type": "text", "text": prompt}]
     content.extend(
         {"type": "image_url", "image_url": {"url": image_input}}
@@ -643,42 +559,15 @@ async def image_edits(
     )
     messages = [{"role": "user", "content": content}]
 
-    # Try native image-edit endpoint first; on ANY upstream/rate-limit failure
-    # fall back to standard image generation (no asset-upload required).
-    try:
-        result = await img_edit(
-            model=model,
-            messages=messages,
-            n=n,
-            size=size,
-            response_format=response_format,
-            stream=False,
-            chat_format=False,
-        )
-    except (UpstreamError, RateLimitError) as exc:
-        logger.warning(
-            "image edit native endpoint failed (status={} msg={}), trying chat fallback",
-            getattr(exc, "status", 0) or 0,
-            str(exc)[:120],
-        )
-        try:
-            result = await _image_edit_via_chat(
-                image_inputs=image_inputs,
-                prompt=prompt,
-                response_format=response_format,
-            )
-        except (UpstreamError, RateLimitError) as chat_exc:
-            logger.warning(
-                "chat fallback also failed (msg={}), falling back to plain generation",
-                str(chat_exc)[:120],
-            )
-            result = await _image_edit_via_generate(
-                prompt=prompt,
-                n=n,
-                size=size,
-                response_format=response_format,
-            )
-
+    result = await img_edit(
+        model=model,
+        messages=messages,
+        n=n,
+        size=size,
+        response_format=response_format,
+        stream=False,
+        chat_format=False,
+    )
     return JSONResponse(result)
 
 
