@@ -1108,7 +1108,6 @@ async def _run_lite_batch(
 
 
 _EDIT_RETRY_STATUSES: frozenset[int] = frozenset({403, 404, 429})
-_EDIT_MAX_RETRIES = 3
 
 
 async def edit(
@@ -1139,8 +1138,9 @@ async def edit(
         raise RateLimitError("Account directory not initialised")
 
     excluded: list[str] = []
+    _attempt = 0
 
-    for _attempt in range(_EDIT_MAX_RETRIES):
+    while True:
         acct = await _acct_dir.reserve(
             pool_candidates = spec.pool_candidates(),
             mode_id         = int(spec.mode_id),
@@ -1185,10 +1185,11 @@ async def edit(
             ).add_done_callback(_log_task_exception)
             if exc.status in _EDIT_RETRY_STATUSES:
                 logger.warning(
-                    "image edit setup failed, retrying with next account: status={} attempt={}/{}",
-                    exc.status, _attempt + 1, _EDIT_MAX_RETRIES,
+                    "image edit setup failed, retrying with next account: status={} attempt={}",
+                    exc.status, _attempt + 1,
                 )
                 excluded.append(token)
+                _attempt += 1
                 continue
             raise
         except Exception:
@@ -1298,8 +1299,8 @@ async def edit(
             fail_exc = exc
             if exc.status in _EDIT_RETRY_STATUSES:
                 logger.warning(
-                    "image edit execution failed, retrying with next account: status={} attempt={}/{}",
-                    exc.status, _attempt + 1, _EDIT_MAX_RETRIES,
+                    "image edit execution failed, retrying with next account: status={} attempt={}",
+                    exc.status, _attempt + 1,
                 )
                 retry = True
         except BaseException as exc:
@@ -1319,6 +1320,7 @@ async def edit(
 
         if retry:
             excluded.append(token)
+            _attempt += 1
             continue
 
         if fail_exc is not None:
