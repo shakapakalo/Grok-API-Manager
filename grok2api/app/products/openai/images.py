@@ -1139,6 +1139,8 @@ async def edit(
 
     excluded: list[str] = []
     _attempt = 0
+    _round    = 1
+    _MAX_ROUNDS = 2
 
     while True:
         acct = await _acct_dir.reserve(
@@ -1148,6 +1150,14 @@ async def edit(
             exclude_tokens  = excluded or None,
         )
         if acct is None:
+            if _round < _MAX_ROUNDS:
+                logger.info(
+                    "image edit: all accounts exhausted in round {}/{}, starting fresh round",
+                    _round, _MAX_ROUNDS,
+                )
+                _round += 1
+                excluded = []
+                continue
             break
 
         token       = acct.token
