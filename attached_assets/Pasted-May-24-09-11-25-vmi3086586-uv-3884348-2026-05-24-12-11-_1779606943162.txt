@@ -1,0 +1,14 @@
+May 24 09:11:25 vmi3086586 uv[3884348]: 2026-05-24 12:11:25.464 | INFO     | app.dataplane.reverse.transport.asset_upload:_upload_file_inner:166 - asset upload completed: filename='file.jpeg' file_id=c0aa7213-7b67-48bf-b88e-80227b1c922d
+May 24 09:11:36 vmi3086586 uv[3884348]: 2026-05-24 12:11:36.404 | ERROR    | app.dataplane.reverse.transport.http:get_bytes_stream:270 - http byte stream get failed: url=https://assets.grok.com/users/6185ce40-5ac9-4227-9d6c-f21be17b8a79/2703c34e-50c3-43cd-b250-77394a5b5bf9/content status=404 body=
+May 24 09:11:36 vmi3086586 uv[3884348]: 2026-05-24 12:11:36.407 | WARNING  | app.products.openai.images:edit:1311 - image edit execution failed, retrying with next account: status=404 attempt=2
+May 24 09:14:27 vmi3086586 uv[3884346]: 2026-05-24 12:14:27.056 | INFO     | app.dataplane.reverse.transport.asset_upload:_upload_file_inner:166 - asset upload completed: filename='file.jpeg' file_id=08dedb51-9c05-4b00-adc4-6ecf01cfae22
+May 24 09:14:42 vmi3086586 uv[3884346]: 2026-05-24 12:14:42.307 | ERROR    | app.dataplane.reverse.transport.http:get_bytes_stream:270 - http byte stream get failed: url=https://assets.grok.com/users/6185ce40-5ac9-4227-9d6c-f21be17b8a79/7970b1f1-9edb-4998-a2ae-a796fa4ffcf8/content status=404 body=
+May 24 09:14:42 vmi3086586 uv[3884346]: 2026-05-24 12:14:42.310 | WARNING  | app.products.openai.images:edit:1311 - image edit execution failed, retrying with next account: status=404 attempt=1
+May 24 09:14:42 vmi3086586 uv[3884346]: 2026-05-24 12:14:42.310 | INFO     | app.products.openai.images:edit:1154 - image edit: all accounts exhausted in round 1/2, starting fresh round
+May 24 09:14:42 vmi3086586 uv[3884346]: 2026-05-24 12:14:42.769 | INFO     | app.dataplane.reverse.transport.asset_upload:_upload_file_inner:166 - asset upload completed: filename='file.jpeg' file_id=8813ac64-8558-44c8-9c0c-46f0a699e50e
+May 24 09:14:55 vmi3086586 uv[3884346]: 2026-05-24 12:14:55.613 | ERROR    | app.dataplane.reverse.transport.http:get_bytes_stream:270 - http byte stream get failed: url=https://assets.grok.com/users/6185ce40-5ac9-4227-9d6c-f21be17b8a79/1493ad7d-f1ba-46cd-8745-7705f9345ed1/content status=404 body=
+May 24 09:14:55 vmi3086586 uv[3884346]: 2026-05-24 12:14:55.618 | WARNING  | app.products.openai.images:edit:1311 - image edit execution failed, retrying with next account: status=404 attempt=2
+{"error":{"message":"Image edit reference 1 upload failed: Asset upload returned 400","type":"upstream_error","code":"upstream_error"}}May 24 09:15:23 vmi3086586 uv[3884346]: 2026-05-24 12:15:23.729 | ERROR    | app.dataplane.reverse.transport.asset_upload:_upload_file_inner:143 - asset upload request failed: status=400 body={"code":3, "message":"Cannot open given image [WKE=file:parse-failed]", "details":[]}
+
+[1]+  Stopped                 bash <(curl -fsSL https://raw.githubusercontent.com/shakapakalo/Grok-API-Manager/main/grok2api/install.sh) --fresh
+root@vmi3086586:~#
