@@ -13,6 +13,8 @@ err()  { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 info() { echo -e "${BLUE}[→]${NC} $1"; }
 
 PORT=8885
+FRESH=false
+for arg in "$@"; do [[ "$arg" == "--fresh" ]] && FRESH=true; done
 
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
@@ -23,6 +25,19 @@ echo ""
 
 # ── 0. Root check ────────────────────────────────────────────
 [[ $EUID -ne 0 ]] && err "Root se chalao: sudo bash install.sh"
+
+# ── 0b. Fresh reset ──────────────────────────────────────────
+INSTALL_DIR="/opt/grok2api"
+if $FRESH; then
+    warn "--fresh flag detected: sab data delete ho raha hai..."
+    systemctl stop grok2api 2>/dev/null || true
+    rm -f  "$INSTALL_DIR/data/accounts.db"
+    rm -f  "$INSTALL_DIR/data/accounts.db-wal"
+    rm -f  "$INSTALL_DIR/data/accounts.db-shm"
+    rm -rf "$INSTALL_DIR/data/files"
+    rm -f  "$INSTALL_DIR/.env"
+    log "Data cleared (accounts + images + videos)"
+fi
 
 # ── 1. System packages ───────────────────────────────────────
 info "System packages install ho rahe hain..."
@@ -43,7 +58,6 @@ log "uv ready: $(uv --version)"
 
 # ── 3. Clone / update repo ───────────────────────────────────
 REPO_URL="https://github.com/shakapakalo/Grok-API-Manager.git"
-INSTALL_DIR="/opt/grok2api"
 info "Repo clone ho raha hai → $INSTALL_DIR"
 if [ -d "$INSTALL_DIR/.git" ]; then
     warn "Pehle se installed hai — update kar raha hun..."
@@ -219,5 +233,16 @@ echo -e "${YELLOW}Commands:${NC}"
 echo "  Status:   systemctl status grok2api"
 echo "  Logs:     journalctl -u grok2api -f"
 echo "  Restart:  systemctl restart grok2api"
-echo "  Update:   cd $INSTALL_DIR && git pull && systemctl restart grok2api"
+echo "  Update:   bash <(curl -fsSL https://raw.githubusercontent.com/shakapakalo/Grok-API-Manager/main/grok2api/install.sh)"
+echo "  Fresh:    bash <(curl -fsSL https://raw.githubusercontent.com/shakapakalo/Grok-API-Manager/main/grok2api/install.sh) --fresh"
+echo ""
+echo -e "${YELLOW}Test scripts (after git push):${NC}"
+echo "  All tests:     python3 $INSTALL_DIR/tests/run_all.py"
+echo "  Add account:   python3 $INSTALL_DIR/tests/00_add_account.py"
+echo "  List accounts: python3 $INSTALL_DIR/tests/01_list_accounts.py"
+echo "  Models:        python3 $INSTALL_DIR/tests/02_models.py"
+echo "  Chat:          python3 $INSTALL_DIR/tests/03_chat.py"
+echo "  Chat stream:   python3 $INSTALL_DIR/tests/04_chat_stream.py"
+echo "  Image gen:     python3 $INSTALL_DIR/tests/05_image_generate.py"
+echo "  Image edit:    python3 $INSTALL_DIR/tests/06_image_edit.py"
 echo ""
