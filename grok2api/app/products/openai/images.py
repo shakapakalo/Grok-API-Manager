@@ -774,6 +774,14 @@ def _collect_edit_results(
         if progress >= 100 and not stream.get("moderated"):
             raw_url = stream.get("imageUrl")
             asset_id = stream.get("assetId")
+            logger.debug(
+                "image edit stream final: progress={} imageUrl={!r} assetId={!r} imageIndex={!r} keys={}",
+                progress,
+                raw_url,
+                asset_id,
+                stream.get("imageIndex"),
+                list(stream.keys()),
+            )
             resolved_url = _resolve_edit_final_url(
                 raw_url=raw_url if isinstance(raw_url, str) and raw_url else None,
                 asset_id=asset_id if isinstance(asset_id, str) and asset_id else None,
@@ -784,12 +792,21 @@ def _collect_edit_results(
                 if index is not None:
                     final_urls[index] = resolved_url
 
-    for index, asset_id in enumerate(extract_model_response_file_attachments(obj)):
+    model_attachments = extract_model_response_file_attachments(obj)
+    model_urls = extract_model_response_urls(obj)
+    if model_attachments or model_urls:
+        logger.debug(
+            "image edit model_response: fileAttachments={!r} generatedImageUrls={!r}",
+            model_attachments,
+            model_urls,
+        )
+
+    for index, asset_id in enumerate(model_attachments):
         resolved_url = _resolve_edit_final_url(raw_url=None, asset_id=asset_id, user_id=user_id)
         if resolved_url:
             final_urls.setdefault(index, resolved_url)
 
-    for index, url in enumerate(extract_model_response_urls(obj)):
+    for index, url in enumerate(model_urls):
         final_urls.setdefault(index, _absolutize_asset_url(url))
 
 
