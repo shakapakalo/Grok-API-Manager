@@ -1,0 +1,286 @@
+6586 systemd[1]: grok2api.service: Consumed 2.507s CPU time.
+May 24 10:09:24 vmi3086586 systemd[1]: grok2api.service: Scheduled restart job, restart counter is at 41.
+May 24 10:09:24 vmi3086586 systemd[1]: Started grok2api.service - Grok2API — OpenAI-Compatible Grok Gateway.
+May 24 10:09:24 vmi3086586 uv[88068]: [INFO] Starting granian (main PID: 88068)
+May 24 10:09:24 vmi3086586 uv[88068]: [INFO] Listening at: http://0.0.0.0:8885
+May 24 10:09:24 vmi3086586 uv[88068]: [INFO] Spawning worker-1 with PID: 88090
+May 24 10:09:24 vmi3086586 uv[88068]: [INFO] Spawning worker-2 with PID: 88092
+May 24 10:09:25 vmi3086586 uv[88092]: Process granian-worker:
+May 24 10:09:25 vmi3086586 uv[88092]: Traceback (most recent call last):
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:25 vmi3086586 uv[88092]:     self.run()
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:25 vmi3086586 uv[88092]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:25 vmi3086586 uv[88092]:     callback = callback_loader()
+May 24 10:09:25 vmi3086586 uv[88092]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:25 vmi3086586 uv[88092]:     module = load_module(path)
+May 24 10:09:25 vmi3086586 uv[88092]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:25 vmi3086586 uv[88092]:     __import__(module_name)
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:25 vmi3086586 uv[88092]:     app = create_app()
+May 24 10:09:25 vmi3086586 uv[88092]:           ^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:25 vmi3086586 uv[88092]:     from app.products.web import router as web_router
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:25 vmi3086586 uv[88092]:     from .router import router
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:25 vmi3086586 uv[88092]:     from .webui import router as webui_router
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:25 vmi3086586 uv[88092]:     from .imagine import router as imagine_router
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:25 vmi3086586 uv[88092]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:25 vmi3086586 uv[88092]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:25 vmi3086586 uv[88092]:     index = len(final_urls)
+May 24 10:09:25 vmi3086586 uv[88092]: IndentationError: unexpected indent
+May 24 10:09:25 vmi3086586 uv[88068]: [ERROR] Unexpected exit from worker-2
+May 24 10:09:25 vmi3086586 uv[88068]: [INFO] Shutting down granian
+May 24 10:09:25 vmi3086586 uv[88090]: Process granian-worker:
+May 24 10:09:25 vmi3086586 uv[88090]: Traceback (most recent call last):
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:25 vmi3086586 uv[88090]:     self.run()
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:25 vmi3086586 uv[88090]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:25 vmi3086586 uv[88090]:     callback = callback_loader()
+May 24 10:09:25 vmi3086586 uv[88090]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:25 vmi3086586 uv[88090]:     module = load_module(path)
+May 24 10:09:25 vmi3086586 uv[88090]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:25 vmi3086586 uv[88090]:     __import__(module_name)
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:25 vmi3086586 uv[88090]:     app = create_app()
+May 24 10:09:25 vmi3086586 uv[88090]:           ^^^^^^^^^^^^
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:25 vmi3086586 uv[88090]:     from app.products.web import router as web_router
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:25 vmi3086586 uv[88090]:     from .router import router
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:25 vmi3086586 uv[88090]:     from .webui import router as webui_router
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:25 vmi3086586 uv[88090]:     from .imagine import router as imagine_router
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:25 vmi3086586 uv[88090]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:25 vmi3086586 uv[88090]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:25 vmi3086586 uv[88090]:     index = len(final_urls)
+May 24 10:09:25 vmi3086586 uv[88090]: IndentationError: unexpected indent
+May 24 10:09:25 vmi3086586 systemd[1]: grok2api.service: Main process exited, code=exited, status=1/FAILURE
+May 24 10:09:25 vmi3086586 systemd[1]: grok2api.service: Failed with result 'exit-code'.
+May 24 10:09:25 vmi3086586 systemd[1]: grok2api.service: Consumed 2.390s CPU time.
+May 24 10:09:30 vmi3086586 systemd[1]: grok2api.service: Scheduled restart job, restart counter is at 42.
+May 24 10:09:30 vmi3086586 systemd[1]: Started grok2api.service - Grok2API — OpenAI-Compatible Grok Gateway.
+May 24 10:09:30 vmi3086586 uv[88834]: [INFO] Starting granian (main PID: 88834)
+May 24 10:09:30 vmi3086586 uv[88834]: [INFO] Listening at: http://0.0.0.0:8885
+May 24 10:09:30 vmi3086586 uv[88834]: [INFO] Spawning worker-1 with PID: 88861
+May 24 10:09:30 vmi3086586 uv[88834]: [INFO] Spawning worker-2 with PID: 88863
+May 24 10:09:31 vmi3086586 uv[88861]: Process granian-worker:
+May 24 10:09:31 vmi3086586 uv[88861]: Traceback (most recent call last):
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:31 vmi3086586 uv[88861]:     self.run()
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:31 vmi3086586 uv[88861]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:31 vmi3086586 uv[88861]:     callback = callback_loader()
+May 24 10:09:31 vmi3086586 uv[88861]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:31 vmi3086586 uv[88861]:     module = load_module(path)
+May 24 10:09:31 vmi3086586 uv[88861]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:31 vmi3086586 uv[88861]:     __import__(module_name)
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:31 vmi3086586 uv[88861]:     app = create_app()
+May 24 10:09:31 vmi3086586 uv[88861]:           ^^^^^^^^^^^^
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:31 vmi3086586 uv[88861]:     from app.products.web import router as web_router
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:31 vmi3086586 uv[88861]:     from .router import router
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:31 vmi3086586 uv[88861]:     from .webui import router as webui_router
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:31 vmi3086586 uv[88861]:     from .imagine import router as imagine_router
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:31 vmi3086586 uv[88861]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:31 vmi3086586 uv[88861]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:31 vmi3086586 uv[88861]:     index = len(final_urls)
+May 24 10:09:31 vmi3086586 uv[88861]: IndentationError: unexpected indent
+May 24 10:09:31 vmi3086586 uv[88834]: [ERROR] Unexpected exit from worker-1
+May 24 10:09:31 vmi3086586 uv[88834]: [INFO] Shutting down granian
+May 24 10:09:32 vmi3086586 uv[88863]: Process granian-worker:
+May 24 10:09:32 vmi3086586 uv[88863]: Traceback (most recent call last):
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:32 vmi3086586 uv[88863]:     self.run()
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:32 vmi3086586 uv[88863]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:32 vmi3086586 uv[88863]:     callback = callback_loader()
+May 24 10:09:32 vmi3086586 uv[88863]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:32 vmi3086586 uv[88863]:     module = load_module(path)
+May 24 10:09:32 vmi3086586 uv[88863]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:32 vmi3086586 uv[88863]:     __import__(module_name)
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:32 vmi3086586 uv[88863]:     app = create_app()
+May 24 10:09:32 vmi3086586 uv[88863]:           ^^^^^^^^^^^^
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:32 vmi3086586 uv[88863]:     from app.products.web import router as web_router
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:32 vmi3086586 uv[88863]:     from .router import router
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:32 vmi3086586 uv[88863]:     from .webui import router as webui_router
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:32 vmi3086586 uv[88863]:     from .imagine import router as imagine_router
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:32 vmi3086586 uv[88863]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:32 vmi3086586 uv[88863]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:32 vmi3086586 uv[88863]:     index = len(final_urls)
+May 24 10:09:32 vmi3086586 uv[88863]: IndentationError: unexpected indent
+May 24 10:09:32 vmi3086586 systemd[1]: grok2api.service: Main process exited, code=exited, status=1/FAILURE
+May 24 10:09:32 vmi3086586 systemd[1]: grok2api.service: Failed with result 'exit-code'.
+May 24 10:09:32 vmi3086586 systemd[1]: grok2api.service: Consumed 2.612s CPU time.
+May 24 10:09:37 vmi3086586 systemd[1]: grok2api.service: Scheduled restart job, restart counter is at 43.
+May 24 10:09:37 vmi3086586 systemd[1]: Started grok2api.service - Grok2API — OpenAI-Compatible Grok Gateway.
+May 24 10:09:37 vmi3086586 uv[89630]: [INFO] Starting granian (main PID: 89630)
+May 24 10:09:37 vmi3086586 uv[89630]: [INFO] Listening at: http://0.0.0.0:8885
+May 24 10:09:37 vmi3086586 uv[89630]: [INFO] Spawning worker-1 with PID: 89652
+May 24 10:09:37 vmi3086586 uv[89630]: [INFO] Spawning worker-2 with PID: 89654
+May 24 10:09:38 vmi3086586 uv[89654]: Process granian-worker:
+May 24 10:09:38 vmi3086586 uv[89652]: Process granian-worker:
+May 24 10:09:38 vmi3086586 uv[89654]: Traceback (most recent call last):
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:38 vmi3086586 uv[89654]:     self.run()
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:38 vmi3086586 uv[89654]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:38 vmi3086586 uv[89654]:     callback = callback_loader()
+May 24 10:09:38 vmi3086586 uv[89654]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:38 vmi3086586 uv[89654]:     module = load_module(path)
+May 24 10:09:38 vmi3086586 uv[89654]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:38 vmi3086586 uv[89654]:     __import__(module_name)
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:38 vmi3086586 uv[89654]:     app = create_app()
+May 24 10:09:38 vmi3086586 uv[89654]:           ^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:38 vmi3086586 uv[89654]:     from app.products.web import router as web_router
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:38 vmi3086586 uv[89654]:     from .router import router
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:38 vmi3086586 uv[89654]:     from .webui import router as webui_router
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:38 vmi3086586 uv[89654]:     from .imagine import router as imagine_router
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:38 vmi3086586 uv[89654]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:38 vmi3086586 uv[89654]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:38 vmi3086586 uv[89654]:     index = len(final_urls)
+May 24 10:09:38 vmi3086586 uv[89654]: IndentationError: unexpected indent
+May 24 10:09:38 vmi3086586 uv[89652]: Traceback (most recent call last):
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:38 vmi3086586 uv[89652]:     self.run()
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:38 vmi3086586 uv[89652]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:38 vmi3086586 uv[89652]:     callback = callback_loader()
+May 24 10:09:38 vmi3086586 uv[89652]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:38 vmi3086586 uv[89652]:     module = load_module(path)
+May 24 10:09:38 vmi3086586 uv[89652]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:38 vmi3086586 uv[89652]:     __import__(module_name)
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:38 vmi3086586 uv[89652]:     app = create_app()
+May 24 10:09:38 vmi3086586 uv[89652]:           ^^^^^^^^^^^^
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:38 vmi3086586 uv[89652]:     from app.products.web import router as web_router
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:38 vmi3086586 uv[89652]:     from .router import router
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:38 vmi3086586 uv[89652]:     from .webui import router as webui_router
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:38 vmi3086586 uv[89652]:     from .imagine import router as imagine_router
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:38 vmi3086586 uv[89652]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:38 vmi3086586 uv[89652]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:38 vmi3086586 uv[89652]:     index = len(final_urls)
+May 24 10:09:38 vmi3086586 uv[89652]: IndentationError: unexpected indent
+May 24 10:09:38 vmi3086586 uv[89630]: [ERROR] Unexpected exit from worker-2
+May 24 10:09:38 vmi3086586 uv[89630]: [INFO] Shutting down granian
+May 24 10:09:38 vmi3086586 systemd[1]: grok2api.service: Main process exited, code=exited, status=1/FAILURE
+May 24 10:09:38 vmi3086586 systemd[1]: grok2api.service: Failed with result 'exit-code'.
+May 24 10:09:38 vmi3086586 systemd[1]: grok2api.service: Consumed 2.666s CPU time.
+May 24 10:09:43 vmi3086586 systemd[1]: grok2api.service: Scheduled restart job, restart counter is at 44.
+May 24 10:09:43 vmi3086586 systemd[1]: Started grok2api.service - Grok2API — OpenAI-Compatible Grok Gateway.
+May 24 10:09:44 vmi3086586 uv[90390]: [INFO] Starting granian (main PID: 90390)
+May 24 10:09:44 vmi3086586 uv[90390]: [INFO] Listening at: http://0.0.0.0:8885
+May 24 10:09:44 vmi3086586 uv[90390]: [INFO] Spawning worker-1 with PID: 90413
+May 24 10:09:44 vmi3086586 uv[90390]: [INFO] Spawning worker-2 with PID: 90419
+May 24 10:09:45 vmi3086586 uv[90413]: Process granian-worker:
+May 24 10:09:45 vmi3086586 uv[90413]: Traceback (most recent call last):
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:45 vmi3086586 uv[90413]:     self.run()
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:45 vmi3086586 uv[90413]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:45 vmi3086586 uv[90413]:     callback = callback_loader()
+May 24 10:09:45 vmi3086586 uv[90413]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:45 vmi3086586 uv[90413]:     module = load_module(path)
+May 24 10:09:45 vmi3086586 uv[90413]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:45 vmi3086586 uv[90413]:     __import__(module_name)
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:45 vmi3086586 uv[90413]:     app = create_app()
+May 24 10:09:45 vmi3086586 uv[90413]:           ^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:45 vmi3086586 uv[90413]:     from app.products.web import router as web_router
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:45 vmi3086586 uv[90413]:     from .router import router
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:45 vmi3086586 uv[90413]:     from .webui import router as webui_router
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:45 vmi3086586 uv[90413]:     from .imagine import router as imagine_router
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:45 vmi3086586 uv[90413]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:45 vmi3086586 uv[90413]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:45 vmi3086586 uv[90413]:     index = len(final_urls)
+May 24 10:09:45 vmi3086586 uv[90413]: IndentationError: unexpected indent
+May 24 10:09:45 vmi3086586 uv[90390]: [ERROR] Unexpected exit from worker-1
+May 24 10:09:45 vmi3086586 uv[90390]: [INFO] Shutting down granian
+May 24 10:09:45 vmi3086586 uv[90419]: Process granian-worker:
+May 24 10:09:45 vmi3086586 uv[90419]: Traceback (most recent call last):
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+May 24 10:09:45 vmi3086586 uv[90419]:     self.run()
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/root/.local/share/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/multiprocessing/process.py", line 108, in run
+May 24 10:09:45 vmi3086586 uv[90419]:     self._target(*self._args, **self._kwargs)
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/server/mp.py", line 90, in wrapped
+May 24 10:09:45 vmi3086586 uv[90419]:     callback = callback_loader()
+May 24 10:09:45 vmi3086586 uv[90419]:                ^^^^^^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 65, in load_target
+May 24 10:09:45 vmi3086586 uv[90419]:     module = load_module(path)
+May 24 10:09:45 vmi3086586 uv[90419]:              ^^^^^^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/.venv/lib/python3.11/site-packages/granian/_internal.py", line 47, in load_module
+May 24 10:09:45 vmi3086586 uv[90419]:     __import__(module_name)
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/main.py", line 428, in <module>
+May 24 10:09:45 vmi3086586 uv[90419]:     app = create_app()
+May 24 10:09:45 vmi3086586 uv[90419]:           ^^^^^^^^^^^^
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/main.py", line 399, in create_app
+May 24 10:09:45 vmi3086586 uv[90419]:     from app.products.web import router as web_router
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/products/web/__init__.py", line 3, in <module>
+May 24 10:09:45 vmi3086586 uv[90419]:     from .router import router
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/products/web/router.py", line 13, in <module>
+May 24 10:09:45 vmi3086586 uv[90419]:     from .webui import router as webui_router
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/products/web/webui/__init__.py", line 6, in <module>
+May 24 10:09:45 vmi3086586 uv[90419]:     from .imagine import router as imagine_router
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/products/web/webui/imagine.py", line 15, in <module>
+May 24 10:09:45 vmi3086586 uv[90419]:     from app.products.openai.images import resolve_aspect_ratio
+May 24 10:09:45 vmi3086586 uv[90419]:   File "/opt/grok2api/app/products/openai/images.py", line 2
+May 24 10:09:45 vmi3086586 uv[90419]:     index = len(final_urls)
+May 24 10:09:45 vmi3086586 uv[90419]: IndentationError: unexpected indent
+May 24 10:09:45 vmi3086586 systemd[1]: grok2api.service: Main process exited, code=exited, status=1/FAILURE
+May 24 10:09:45 vmi3086586 systemd[1]: grok2api.service: Failed with result 'exit-code'.
+May 24 10:09:45 vmi3086586 systemd[1]: grok2api.service: Consumed 2.432s CPU time.
+May 24 10:09:50 vmi3086586 systemd[1]: grok2api.service: Scheduled restart job, restart counter i
