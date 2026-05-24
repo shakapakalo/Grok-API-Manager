@@ -1,9 +1,16 @@
-BASE_URL   = "http://217.77.8.115:8885"
-API_KEY    = "ranaji"
-ADMIN_PASS = "grok2api"
+import os
 
-SSO_TOKEN  = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZXNzaW9uX2lkIjoiOWM1ZmM5YTgtMzc5NC00NjE1LWI2ODMtNTUyNDJjNDU3YTQ3In0.qGtzKu8yUFo71PSu3JXSulnIOPHKq_TxYLZp5wcP_wg"
-CF_CLEARANCE = "Yqiu4MnoM9JOo9uR8N8vXZashKJHpaKJBRXIgRmfMGs-1779602508-1.2.1"
+BASE_URL   = os.getenv("GROK2API_URL",   "http://217.77.8.115:8885")
+API_KEY    = os.getenv("GROK2API_KEY",   "ranaji")
+ADMIN_PASS = os.getenv("GROK2API_ADMIN", "grok2api")
+SSO_TOKEN  = os.getenv("GROK2API_TOKEN", "")
 
-HEADERS    = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-ADMIN_HDR  = {"Authorization": f"Bearer {ADMIN_PASS}", "Content-Type": "application/json"}
+if not SSO_TOKEN:
+    raise SystemExit(
+        "ERROR: GROK2API_TOKEN env var set karo pehle.\n"
+        "  export GROK2API_TOKEN='your_sso_token_here'\n"
+        "  python3 00_add_account.py"
+    )
+
+HEADERS   = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+ADMIN_HDR = {"Authorization": f"Bearer {ADMIN_PASS}", "Content-Type": "application/json"}
