@@ -789,8 +789,9 @@ def _collect_edit_results(
             )
             if resolved_url:
                 index = _parse_image_index(stream.get("imageIndex"))
-                if index is not None:
-                    final_urls[index] = resolved_url
+                if index is None:
+                    index = len(final_urls)
+                final_urls[index] = resolved_url
 
     model_attachments = extract_model_response_file_attachments(obj)
     model_urls = extract_model_response_urls(obj)
