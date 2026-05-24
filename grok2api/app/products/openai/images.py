@@ -849,14 +849,23 @@ async def _collect_edit_final_urls(
             continue
         raise_for_stream_error(obj)
         stream = extract_streaming_response(obj)
-        if stream and progress_cb is not None:
-            index = _parse_image_index(stream.get("imageIndex"))
-            if index is not None:
-                try:
-                    progress = _clamp_progress(int(stream.get("progress") or 0))
-                except (TypeError, ValueError):
-                    progress = 0
-                await progress_cb(index, progress)
+        if stream:
+            try:
+                _prog = int(stream.get("progress") or 0)
+            except (TypeError, ValueError):
+                _prog = 0
+            logger.warning(
+                "image edit stream tick: progress={} keys={} imageUrl={!r} assetId={!r} moderated={!r}",
+                _prog,
+                list(stream.keys()),
+                stream.get("imageUrl"),
+                stream.get("assetId"),
+                stream.get("moderated"),
+            )
+            if progress_cb is not None:
+                index = _parse_image_index(stream.get("imageIndex"))
+                if index is not None:
+                    await progress_cb(index, _clamp_progress(_prog))
         _collect_edit_results(obj=obj, final_urls=final_urls, user_id=user_id)
 
     if not final_urls:
