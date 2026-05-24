@@ -774,7 +774,7 @@ def _collect_edit_results(
         if progress >= 100 and not stream.get("moderated"):
             raw_url = stream.get("imageUrl")
             asset_id = stream.get("assetId")
-            logger.debug(
+            logger.warning(
                 "image edit stream final: progress={} imageUrl={!r} assetId={!r} imageIndex={!r} keys={}",
                 progress,
                 raw_url,
@@ -795,7 +795,7 @@ def _collect_edit_results(
     model_attachments = extract_model_response_file_attachments(obj)
     model_urls = extract_model_response_urls(obj)
     if model_attachments or model_urls:
-        logger.debug(
+        logger.warning(
             "image edit model_response: fileAttachments={!r} generatedImageUrls={!r}",
             model_attachments,
             model_urls,
